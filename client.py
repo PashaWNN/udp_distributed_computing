@@ -7,7 +7,7 @@ from typing import Callable
 from computing import DistributionComputingClient
 from gui import Application, LoggerWindow, Button, Window, Entry
 from udp import UDPClient, command, GET_CHUNK, RESULT_PART, TASK, ACKNOWLEDGE, NO_JOB, MATH_ERROR
-from utils import validate_float, tk_validator, validate_port, validate_ip
+from utils import validate_port, validate_ip
 
 default_server_ip = '127.0.0.1'
 default_server_port = '20001'
@@ -90,19 +90,23 @@ class ClusterClient(UDPClient):
 
 
 class MainClientWindow(Window):
+    """
+    Класс, определяющий компоненты пользовательского интерфейса и взаимодействие с ними
+    """
 
+    # Поля ввода
     server_ip = Entry('IP-адрес', default=default_server_ip)
     server_port = Entry('Порт', validator=validate_port, default=default_server_port)
+
+    # Кнопка
     go = Button('Запуск сервера', 'launch_clicked')
 
-    def __init__(self, app):
-        super().__init__(app)
-
     def launch_clicked(self):
+        # Действие по кнопке
         try:
-            self.validate()
-            self.start_working_thread()
-            self.app.set_window_contents(LoggerWindow)
+            self.validate()  # Провалидировать корректность ввода
+            self.start_working_thread()  # Запустить второй поток для вычислений
+            self.app.set_window_contents(LoggerWindow)  # Сменить интерфейс на LoggerWindow
         except Exception as e:
             messagebox.showwarning('Ошибка при запуске клиента', str(e))
             return
@@ -112,11 +116,16 @@ class MainClientWindow(Window):
             raise ValueError('Введён невалидный IP-адрес')
 
     def start_working_thread(self):
+        # Получим данные из формы
         server_ip = self['server_ip'].get()
         server_port = int(self['server_port'].get())
-        controller = DistributionComputingClient()
+
+        controller = DistributionComputingClient()  # Создадим экземпляр контроллера вычислений
+        # Зададим действие для логгирования (при получении текста l отправить его в виде события 'log' в интерфейс)
         logging_callback = lambda l: self.app.emit_event('log', l)
+        # Создадим экземпляр клиента вычислений
         client = ClusterClient(server_ip, server_port, controller, logging_callback=logging_callback)
+        # Запустим вычисления в отдельном потоке
         self.app.thread = threading.Thread(target=client.work)
         self.app.thread.start()
 

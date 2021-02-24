@@ -24,7 +24,9 @@ rules_mapping = {
 
 
 class ClusterServer(UDPServer):
-
+    """
+    Класс, определяющий логику сервера вычислений
+    """
     def __init__(
             self,
             bind_address: str,
@@ -32,19 +34,39 @@ class ClusterServer(UDPServer):
             controller: DistributedComputingController,
             logging_callback: Callable = None,
     ):
+        """
+        Конструктор
+
+        :param bind_address: какой адрес слушать
+        :param bind_port: какой порт слушать
+        :param controller: экземпляр контроллера вычислений
+        :param logging_callback: функция, которую нужно вызывать, чтобы показать пользователю какой-либо текст
+        """
         super().__init__(bind_address, bind_port)
         self.controller = controller
         self.print = logging_callback or print
 
     def pre_loop(self):
+        """
+        Действие перед каждой итерацией цикла работы
+        Вызывает освобождение брошенных чанков и останавливает работу если всё вычислено или приложение
+        установило флаг завершения работы
+        """
         self.controller.deallocate_abandoned_chunks()
         if self.controller.finished or not getattr(threading.current_thread(), 'do_work', True):
             self.finished = True
 
     @command(GET_CHUNK)
     def process_get_chunk(self, client_id: str) -> Union[Prefix, Tuple[Prefix, int, int]]:
+        """
+        Обработчик команды GET_CHUNK (клиент просит задание)
+
+        :param client_id: ID отправителя команды
+        :return: команда TASK с аргументами из controller.cluster_args и границами чанка
+            или NO_JOB если нет свободных чанков
+        """
         chunk = self.controller.allocate_chunk(client_id)
-        if not chunk:
+        if not chunk:  # Если нет свободных чанков
             return NO_JOB
         self.print(f'{chunk} был назначен {client_id}')
         left_bound, right_bound = chunk.get_bounds()
@@ -52,15 +74,31 @@ class ClusterServer(UDPServer):
 
     @command(RESET_WATCHDOG)
     def process_watchdog(self, client_id: str):
+        """
+        Обработчик обращения к таймеру чанка. Просто посылает соответствующую команду контроллеру
+        :param client_id: ID отправителя
+        :return: ничего
+        """
         self.controller.reset_watchdog(client_id)
 
     @command(MATH_ERROR)
     def process_error(self, client_id: str):
+        """
+        Обработчик команды MATH_ERROR. Завершает работу сервера.
+        :param client_id: ID отправителя
+        :return: ничего
+        """
         self.print(f'Клиент {client_id} сообщил о математической ошибке при вычислениях')
         self.finished = True
 
     @command(RESULT_PART)
     def process_result(self, result: float, client_id: str) -> Optional[Prefix]:
+        """
+        Обработчик команды RESULT_PART.
+        :param result: частичный результат, полученный от клиента
+        :param client_id: ID отправителя
+        :return: команда ACKNOWLEDGE
+        """
         self.print(f'Получен частичный результат от {client_id}')
         result = self.controller.add_result_part(client_id, result)
         if result is not None:
@@ -70,6 +108,9 @@ class ClusterServer(UDPServer):
 
 
 class MainServerWindow(Window):
+    """
+    Класс, определяющий компоненты пользовательского интерфейса и взаимодействие с ними
+    """
     server_ip = Entry('IP-адрес', default=default_server_ip)
     server_port = Entry('Порт', validator=validate_port, default=default_server_port)
     lower_bound = Entry('Нижний предел инт-ния', validator=validate_float, default=default_lower_bound)

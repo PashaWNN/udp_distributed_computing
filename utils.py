@@ -1,3 +1,4 @@
+import ast
 import re
 
 
@@ -42,3 +43,28 @@ def validate_port(value):
         pass
     return False
 
+
+def drange(start, stop, step):
+    """
+    Вспомогательная функция-генератор, возвращающая значения от start до stop с шагом step
+    """
+    r = start
+    while r < stop:
+        yield r
+        r += step
+
+
+def validate_formula_code(formula):
+    """
+    Функция для проверки корректности формулы
+
+    :returns: True если формула корректна, иначе False
+    """
+    whitelist = (  # определяем список разрешённых операторов
+        ast.Expression, ast.Call, ast.Name, ast.Load, ast.BinOp,
+        ast.UnaryOp, ast.operator, ast.unaryop, ast.cmpop, ast.Num,
+    )
+
+    tree = ast.parse(formula, mode='eval')  # разберём код формулы на части
+    # вернём True, если все части входят в белый список
+    return all(isinstance(node, whitelist) for node in ast.walk(tree))
