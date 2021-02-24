@@ -33,20 +33,6 @@ def midpoint_rectangle_rule(func: Callable[[float], float], a: float, b: float, 
     return _rectangle_rule(func, a, b, segment_count, 0.5)
 
 
-# def trapezoid_rule(func, a, b, segment_count):
-#     """
-#     Правило трапеций
-#
-#     :param segment_count: число отрезков, на которые разбивается [a; b]
-#     """
-#     dx = 1.0 * (b - a) / segment_count
-#     sum = 0.5 * (func(a) + func(b))
-#     for i in range(1, segment_count):
-#         sum += func(a + i * dx)
-#
-#     return sum * dx
-
-
 def trapezoid_rule(func: Callable[[float], float], a: float, b: float, precision=1e-12, initial_segment_count=1):
     """
     Правило трапеций
