@@ -35,12 +35,15 @@ class UDPClient:
 
     UUID4 идентификатор клиента создаётся при создании экземпляра класса
 
+    Определяет логику обмена сообщениями по следующему протоколу:
+
     Формат входящего сообщения:
       ПРЕФИКС(аргумент 1, ... аргумент N)
 
     Формат исходящего сообщения
       UUID4 идентификатор|ПРЕФИКС(аргумент 1, ... аргумент N)
 
+    Может быть дополнен любой логикой, для которой подходит такой протокол обмена
     """
     def __init__(self, ip_address: str, port: int):
         """
@@ -108,8 +111,9 @@ class UDPClient:
 
 class UDPServer:
     """
-    Базовый класс для UDP-сервера, работающего в цикле
+    Базовый (универсальный) класс для UDP-сервера, работающего в цикле
 
+    Определяет логику обмена сообщениями по следующему протоколу:
 
     Формат исходящего сообщения
       ПРЕФИКС(аргумент 1, ... аргумент N)
@@ -117,8 +121,15 @@ class UDPServer:
     Формат входящего сообщения:
       UUID4 идентификатор|ПРЕФИКС(аргумент 1, ... аргумент N)
 
+    Может быть дополнен любой логикой, для которой подходит такой протокол обмена
     """
     def __init__(self, bind_address: str, bind_port: int):
+        """
+        Конструктор
+
+        :param bind_address: Какой IP слушать
+        :param bind_port: Какой порт слушать
+        """
         self.buffer_size = BUFFER_SIZE
         self.socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         self.socket.bind((bind_address, bind_port))
@@ -149,6 +160,7 @@ class UDPServer:
     def pre_loop(self):
         """
         Метод, выполняемый в начале каждой итерации основного цикла
+        Пустой, но можно переопределить в конкретной реализации сервера
         """
 
     def _receive_and_answer(self):
@@ -174,6 +186,10 @@ class UDPServer:
     def send(self, address: Tuple[str, int], prefix: Prefix, *args):
         """
         Метод отправки сообщения
+
+        :param address: адрес для отправки в виде пары (IP, port)
+        :param prefix: префикс (команда)
+        :param args: дополнительная информация для отправки вместе с командой
         """
         message = f'{prefix}{args}'.encode('utf-8')
         self.socket.sendto(message, address)

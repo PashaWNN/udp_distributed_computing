@@ -5,6 +5,11 @@ def _rectangle_rule(func: Callable[[float], float], a: float, b: float, segment_
     """
     Обобщённое правило прямоугольников.
 
+    :param func: функция для интегрирования
+    :param a: нижний предел интегрирования
+    :param b: верхний предел интегрирования
+    :param segment_count: количество сегментов
+    :param frac: доля смещения точки 0 <= frac <= 1
     """
     dx = 1.0 * (b - a) / segment_count
     sum_ = 0.0
