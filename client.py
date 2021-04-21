@@ -99,14 +99,22 @@ class MainClientWindow(Window):
     server_port = Entry('Порт', validator=validate_port, default=default_server_port)
 
     # Кнопка
-    go = Button('Запуск сервера', 'launch_clicked')
+    go = Button('Запуск клиента', 'launch_clicked')
 
     def launch_clicked(self):
         # Действие по кнопке
         try:
             self.validate()  # Провалидировать корректность ввода
+            server_ip = self['server_ip'].get()
+            server_port = int(self['server_port'].get())
             self.start_working_thread()  # Запустить второй поток для вычислений
             self.app.set_window_contents(LoggerWindow)  # Сменить интерфейс на LoggerWindow
+
+            self.app.emit_event(
+                'log',
+                'Запуск клиента вычислений... \n'
+                f'{server_ip}:{server_port}\n\n'
+            )
         except Exception as e:
             messagebox.showwarning('Ошибка при запуске клиента', str(e))
             return
@@ -131,5 +139,5 @@ class MainClientWindow(Window):
 
 
 if __name__ == '__main__':
-    app = Application('Сервер', MainClientWindow)
+    app = Application('Клиент', MainClientWindow)
     app.mainloop()

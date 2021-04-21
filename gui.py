@@ -1,3 +1,4 @@
+import sys
 import tkinter as tk
 from tkinter import ttk
 from typing import Callable, Type, Dict, Any
@@ -145,7 +146,7 @@ class Application:
         :param args: порядковые аргументы события
         :param kwargs: словарные аргументы события
         """
-        for subscriber in self.events[event_name]:
+        for subscriber in self.events.get(event_name, []):
             subscriber.receive_event(event_name, *args, **kwargs)
 
     def subscribe(self, event_name, window: Window):
@@ -178,9 +179,10 @@ class Application:
         обработчик нажатия на "крестик"
         Устанавливает флаг прекращения работы потоку, если поток запущен и выходит
         """
+        self.emit_event('log', 'Завершение работы...')
         if self.thread is not None:
             self.thread.do_work = False
-        exit()
+        sys.exit()
 
 
 class LoggerWindow(Window):

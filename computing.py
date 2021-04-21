@@ -187,7 +187,7 @@ class DistributedComputingController:
         """
         chunk_id = self._clients_to_chunks_map.get(client_id)
         if chunk_id is not None:
-            self._chunks[chunk_id].deallocate_if_not_alive()
+            self._chunks[chunk_id].reset_watchdog()
 
 
 class DistributionComputingClient:

@@ -126,8 +126,21 @@ class MainServerWindow(Window):
     def launch_clicked(self):
         try:
             self.validate()
+            lower_bound = float(self['lower_bound'].get())
+            higher_bound = float(self['higher_bound'].get())
+            cluster_count = int(self['clusters'].get())
+            formula_to_integrate = self['formula'].get()
+            server_ip = self['server_ip'].get()
+            server_port = int(self['server_port'].get())
+            method = self['rule'].get()
             self.start_working_thread()
             self.app.set_window_contents(LoggerWindow)
+            self.app.emit_event(
+                'log',
+                f'Запуск сервера на {server_ip}:{server_port} для интегрирования уравнения {formula_to_integrate}'
+                f'в пределах от {lower_bound} до {higher_bound}, используя {cluster_count} кластер(ов) по методу'
+                f' {method}'
+            )
         except Exception as e:
             messagebox.showwarning('Ошибка при запуске сервера', str(e))
             return
